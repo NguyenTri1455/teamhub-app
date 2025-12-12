@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Calendar } from "@/components/ui/calendar"; // Lịch lớn để hiển thị
 import { format, isSameDay } from "date-fns";
 import { vi } from "date-fns/locale";
+import { useAuth } from "@/hooks/useAuth";
 
 // Animation
 const pageAnimation = {
@@ -32,23 +33,45 @@ export function TeamCalendarPage() {
   const [eventToEdit, setEventToEdit] = useState(null); // Sự kiện đang sửa
   const [eventToDelete, setEventToDelete] = useState(null); // Sự kiện đang chờ xóa
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
 
   // "Nghe" (stream) sự kiện
-  useEffect(() => {
-    const unsubscribe = streamEvents((eventsData) => {
+  const { socket } = useAuth();
+
+  const fetchEventsData = async () => {
+    // streamEvents giờ chỉ gọi 1 lần (đã sửa trong service) hoặc dùng getEvents
+    // Để đơn giản ta dùng lại cấu trúc cũ nhưng streamEvents bây giờ trả về mảng Event đã parse Date
+    streamEvents((eventsData) => {
       setAllEvents(eventsData);
       setLoading(false);
     });
-    return () => unsubscribe();
+  };
+
+  useEffect(() => {
+    fetchEventsData();
   }, []);
 
+  // Real-time listener
+  useEffect(() => {
+    if (!socket) return;
+    const handleEventsUpdated = () => {
+      fetchEventsData();
+    };
+    socket.on("events:updated", handleEventsUpdated);
+    return () => {
+      socket.off("events:updated", handleEventsUpdated);
+    };
+  }, [socket]);
+
   const eventDays = useMemo(() => {
-    return allEvents.map((event) => event.eventTimestamp.toDate());
+    // eventsData.eventTimestamp đã là Date object (do service xử lý), không cần .toDate()
+    return allEvents.map((event) => new Date(event.eventTimestamp));
   }, [allEvents]);
 
   const filteredEvents = useMemo(() => {
     return allEvents.filter((event) =>
-      isSameDay(event.eventTimestamp.toDate(), selectedDate)
+      isSameDay(new Date(event.eventTimestamp), selectedDate)
     );
   }, [allEvents, selectedDate]);
 
@@ -60,7 +83,7 @@ export function TeamCalendarPage() {
       } else {
         await addEvent(dataToSubmit);
       }
-      
+
       handleDialogClose(); // Đóng dialog
     } catch (error) {
       console.error("Lỗi khi submit:", error);
@@ -109,26 +132,28 @@ export function TeamCalendarPage() {
             Quay lại
           </Link>
         </Button>
-        <Dialog open={openAddDialog || !!eventToEdit} onOpenChange={handleOpenStateChange}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setOpenAddDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Thêm sự kiện
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {eventToEdit ? "Sửa sự kiện" : "Tạo sự kiện team mới"}
-              </DialogTitle>
-            </DialogHeader>
-            <AddEventForm
-              onSubmit={handleEventSubmit}  // <-- Dùng hàm submit mới
-              onSuccess={handleDialogClose} // <-- Dùng hàm đóng mới
-              eventToEdit={eventToEdit}     // <-- Truyền event cần sửa
-            />
-          </DialogContent>
-        </Dialog>
+        {isAdmin && (
+          <Dialog open={openAddDialog || !!eventToEdit} onOpenChange={handleOpenStateChange}>
+            <DialogTrigger asChild>
+              <Button onClick={() => setOpenAddDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Thêm sự kiện
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {eventToEdit ? "Sửa sự kiện" : "Tạo sự kiện team mới"}
+                </DialogTitle>
+              </DialogHeader>
+              <AddEventForm
+                onSubmit={handleEventSubmit}
+                onSuccess={handleDialogClose}
+                eventToEdit={eventToEdit}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,7 +165,7 @@ export function TeamCalendarPage() {
               selected={selectedDate}
               onSelect={setSelectedDate}
               className="w-full"
-              locale={vi} 
+              locale={vi}
               modifiers={{ hasEvent: eventDays }}
               modifiersClassNames={{ hasEvent: "day-has-event" }}
             />
@@ -157,11 +182,12 @@ export function TeamCalendarPage() {
               <p className="text-muted-foreground">Không có sự kiện nào cho ngày này.</p>
             )}
             {filteredEvents.map((event) => (
-              <EventItem 
-                key={event.id} 
-                event={event} 
-                onEdit={() => handleEdit(event)}   
+              <EventItem
+                key={event.id}
+                event={event}
+                onEdit={() => handleEdit(event)}
                 onDelete={() => handleDelete(event)}
+                isAdmin={isAdmin}
               />
             ))}
           </div>
@@ -172,7 +198,7 @@ export function TeamCalendarPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
             <AlertDialogDescription>
-              Hành động này sẽ xóa vĩnh viễn sự kiện 
+              Hành động này sẽ xóa vĩnh viễn sự kiện
               <span className="font-bold"> "{eventToDelete?.title}"</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -189,8 +215,8 @@ export function TeamCalendarPage() {
 }
 
 // Card con cho từng sự kiện
-function EventItem({ event, onEdit, onDelete }) {
-  const eventDate = event.eventTimestamp.toDate();
+function EventItem({ event, onEdit, onDelete, isAdmin }) {
+  const eventDate = new Date(event.eventTimestamp);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -200,19 +226,21 @@ function EventItem({ event, onEdit, onDelete }) {
             {format(eventDate, "eeee, dd/MM/yyyy 'lúc' HH:mm", { locale: vi })}
           </CardDescription>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={onEdit}>Sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={onDelete} className="text-red-500">
-              Xóa
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isAdmin && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={onEdit}>Sửa</DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-red-500">
+                Xóa
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </CardHeader>
       <CardContent>
         <p><strong>Địa điểm:</strong> {event.location}</p>

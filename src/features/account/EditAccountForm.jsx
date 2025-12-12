@@ -4,16 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
-import { updateUser } from "@/services/userService.js";
+import { updateUser, uploadAvatar } from "@/services/userService.js";
 
 // Form này được nhúng trực tiếp, không phải Dialog
 export function EditAccountForm({ user, onSave, onCancel }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const [uploading, setUploading] = useState(false);
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
       name: user.name,
-      phone: user.phone || "",
-      avatar: user.avatar || "",
+      avatar: user.avatarUrl || "",
     }
   });
 
@@ -21,21 +21,39 @@ export function EditAccountForm({ user, onSave, onCancel }) {
   useEffect(() => {
     reset({
       name: user.name,
-      phone: user.phone || "",
-      avatar: user.avatar || "",
+      avatar: user.avatarUrl || "", // Note: backend sends avatarUrl
     });
   }, [user, reset]);
+
+  // Handle file selection
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const res = await uploadAvatar(file);
+      // res.avatarUrl is the new URL
+      setValue("avatar", res.avatarUrl); // Update hidden field or state
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert("Upload ảnh thất bại");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     try {
+      // Map 'avatar' form field to 'avatarUrl' expected by backend
       const userData = {
-        ...data,
-        avatar: data.avatar || `https://i.pravatar.cc/150?u=${data.name}`,
+        name: data.name,
+        avatarUrl: data.avatar,
       };
-      
+
       await updateUser(user.id, userData);
-      
+
       onSave(); // Gọi callback báo cha đã lưu (để tắt chế độ edit)
     } catch (error) {
       console.error("Failed to update user:", error);
@@ -43,6 +61,8 @@ export function EditAccountForm({ user, onSave, onCancel }) {
       setIsSubmitting(false);
     }
   };
+
+  const currentAvatar = watch("avatar");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
@@ -54,27 +74,35 @@ export function EditAccountForm({ user, onSave, onCancel }) {
         />
         {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
       </div>
+
       <div className="space-y-2">
-        <Label htmlFor="phone">Điện thoại</Label>
-        <Input
-          id="phone"
-          {...register("phone")}
-          type="tel"
-        />
+        <Label>Ảnh đại diện</Label>
+
+        {/* Preview */}
+        {currentAvatar && (
+          <div className="mb-2">
+            <img src={currentAvatar} alt="Preview" className="w-20 h-20 rounded-full object-cover border" />
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+          {uploading && <span className="text-xs text-muted-foreground">Đang tải lên...</span>}
+        </div>
+        {/* Hidden input to store URL */}
+        <input type="hidden" {...register("avatar")} />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="avatar">Link Avatar</Label>
-        <Input
-          id="avatar"
-          {...register("avatar")}
-          placeholder="Để trống để dùng ảnh ngẫu nhiên"
-        />
-      </div>
+
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>
           Hủy
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || uploading}>
           {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
         </Button>
       </div>

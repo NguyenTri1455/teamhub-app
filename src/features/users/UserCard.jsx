@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { deleteUser } from "@/services/userService";
-import { MoreVertical, Phone } from "lucide-react"; 
+import { MoreVertical, Phone } from "lucide-react";
 import { EditUserDialog } from "./EditUserDialog";
 export function UserCard({ user, onUserDeleted, onUserUpdated, isAdmin, currentUserId }) {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -59,6 +59,19 @@ export function UserCard({ user, onUserDeleted, onUserUpdated, isAdmin, currentU
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setShowEditDialog(true)}>Sửa (Edit)</DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  if (window.confirm(`Reset password của ${user.name} về "123"?`)) {
+                    try {
+                      await import("@/services/userService").then(m => m.resetPassword(user.id));
+                      alert("Password đã được reset về 123");
+                    } catch (e) {
+                      console.error(e);
+                      alert("Lỗi khi reset password");
+                    }
+                  }
+                }}>
+                  Reset Password
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-red-500">
                   Xóa (Delete)
                 </DropdownMenuItem>
@@ -71,17 +84,14 @@ export function UserCard({ user, onUserDeleted, onUserUpdated, isAdmin, currentU
         {/* Nội dung Card */}
         <CardHeader className="flex items-center pt-8">
           <img
-            src={user.avatar || 'https://i.pravatar.cc/150'}
+            src={user.avatarUrl || 'https://i.pravatar.cc/150'}
             alt={user.name}
             className="w-24 h-24 rounded-full mb-4"
           />
           <CardTitle>{user.name}</CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <p className="text-muted-foreground flex items-center justify-center gap-1.5">
-            <Phone className="h-4 w-4" />
-            {user.phone || 'Chưa có SĐT'}
-        </p>
+          {/* Phone removed */}
         </CardContent>
       </Card>
 

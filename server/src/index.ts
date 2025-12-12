@@ -1,0 +1,71 @@
+import "reflect-metadata"
+import express from "express"
+import cors from "cors"
+import { AppDataSource } from "./data-source"
+import authRoutes from "./routes/auth";
+import eventRoutes from "./routes/events";
+import invitationRoutes from "./routes/invitations";
+import fundRoutes from "./routes/funds";
+import dutyRoutes from "./routes/duty";
+// Beer routes removed
+import userRoutes from "./routes/users";
+import { User } from "./entities/User";
+
+const app = express()
+const port = 3000
+
+app.use(cors())
+app.use(express.json())
+// Serve static files from 'public' directory
+import path from "path";
+app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
+
+app.use("/auth", authRoutes);
+app.use("/events", eventRoutes);
+app.use("/invitations", invitationRoutes);
+app.use("/funds", fundRoutes);
+app.use("/duty", dutyRoutes);
+app.use("/users", userRoutes);
+import { createServer } from "http";
+
+const httpServer = createServer(app);
+
+AppDataSource.initialize().then(async () => {
+    console.log("Data Source has been initialized!")
+
+    // Seed Admin User
+    const userRepo = AppDataSource.getRepository(User);
+    const adminExists = await userRepo.findOne({ where: { role: "admin" } });
+
+    // if (!adminExists) {
+    //     console.log("Seeding Admin User...");
+    //     const admin = new User();
+    //     admin.username = "admin";
+    //     admin.password = "123456"; // Plain text as requested
+    //     admin.role = "admin";
+    //     admin.name = "System Admin";
+    //     await userRepo.save(admin);
+    //     console.log("Admin User Created: admin / 123456");
+    // } else {
+    //     // Ensure role is admin
+    //     if (adminExists.role !== "admin") {
+    //         adminExists.role = "admin";
+    //         await userRepo.save(adminExists);
+    //         console.log("Updated Admin User role to 'admin'");
+    //     }
+    // }
+
+    app.get("/", (req, res) => {
+        res.send("TeamHub API is running!")
+    })
+
+    // Init Socket
+    initSocket(httpServer);
+
+    httpServer.listen(port, () => {
+        console.log(`Server is running at http://localhost:${port}`)
+    })
+
+}).catch((err) => {
+    console.error("Error during Data Source initialization", err)
+})

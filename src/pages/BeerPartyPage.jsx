@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, Plus, Minus, Crown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
 
 // Animation
 const pageAnimation = {
@@ -21,8 +22,10 @@ export function BeerPartyPage() {
   const { partyId } = useParams(); // Lấy ID từ URL
   const [party, setParty] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isEnding, setIsEnding] = useState(false); 
+  const [isEnding, setIsEnding] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
   const handleEndParty = async () => {
     setIsEnding(true);
     try {
@@ -42,7 +45,7 @@ export function BeerPartyPage() {
     });
 
     // Hàm dọn dẹp: Hủy "lắng nghe" khi thoát trang
-    return () => unsubscribe(); 
+    return () => unsubscribe();
   }, [partyId]);
 
   // Tự động sắp xếp lại danh sách khi "party" thay đổi
@@ -73,13 +76,15 @@ export function BeerPartyPage() {
             Quay lại
           </Link>
         </Button>
-        <Button 
-          variant="destructive" 
-          onClick={handleEndParty}
-          disabled={isEnding}
-        >
-          {isEnding ? "Đang lưu..." : "Kết thúc tiệc"}
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="destructive"
+            onClick={handleEndParty}
+            disabled={isEnding}
+          >
+            {isEnding ? "Đang lưu..." : "Kết thúc tiệc"}
+          </Button>
+        )}
       </div>
 
       <Card className="mb-6">
@@ -88,9 +93,9 @@ export function BeerPartyPage() {
           <span className="text-3xl font-bold text-primary">{party.totalCount} lon</span>
         </CardContent>
       </Card>
-      
+
       <h2 className="text-2xl font-bold mb-4">Bảng xếp hạng:</h2>
-      
+
       <div className="space-y-4">
         {sortedParticipants.map((p, index) => (
           <BeerCounterCard
@@ -113,11 +118,11 @@ function BeerCounterCard({ participant, isKing, onIncrement, onDecrement }) {
   const handleClick = async (action) => {
     setIsUpdating(true); // Vô hiệu hóa nút
     try {
-      await action(); 
+      await action();
     } catch (error) {
       console.error("Lỗi khi cập nhật:", error);
     } finally {
-      setIsUpdating(false); 
+      setIsUpdating(false);
     }
   };
 
@@ -137,7 +142,7 @@ function BeerCounterCard({ participant, isKing, onIncrement, onDecrement }) {
             <span className="text-3xl font-bold">{participant.count}</span>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Button
             size="icon"

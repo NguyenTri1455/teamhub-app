@@ -8,14 +8,14 @@ const pageAnimation = {
 
 export function FundPage() {
   return (
-  <motion.div
-        variants={pageAnimation}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={{ duration: 0.2 }}
-      >
-          <FundLedger />;
-      </motion.div>
+    <motion.div
+      variants={pageAnimation}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.2 }}
+    >
+      <FundLedger />
+    </motion.div>
   )
 }

@@ -1,0 +1,93 @@
+import { Request, Response } from "express";
+import { AppDataSource } from "../data-source";
+import { User } from "../entities/User";
+
+class UserController {
+    static list = async (req: Request, res: Response) => {
+        const userRepository = AppDataSource.getRepository(User);
+        try {
+            const users = await userRepository.find({
+                select: ["id", "username", "name", "avatarUrl", "role", "isActive"]
+            });
+            res.send(users);
+        } catch (error) {
+            res.status(500).send("Error fetching users");
+        }
+    };
+
+    static getOneById = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id);
+        const userRepository = AppDataSource.getRepository(User);
+        try {
+            const user = await userRepository.findOneOrFail({ where: { id } });
+            // Don't send password
+            const { password, ...userInfo } = user;
+            res.send(userInfo);
+        } catch (error) {
+            res.status(404).send("User not found");
+        }
+    };
+
+    static update = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id);
+        const { name, role, avatarUrl, isActive } = req.body;
+        const userRepository = AppDataSource.getRepository(User);
+        try {
+            let user = await userRepository.findOneOrFail({ where: { id } });
+            user.name = name ?? user.name;
+            user.role = role ?? user.role;
+            user.avatarUrl = avatarUrl ?? user.avatarUrl;
+            user.isActive = isActive ?? user.isActive;
+            await userRepository.save(user);
+
+            // Real-time update
+            const { emitUserUpdate } = require("../socket");
+            if (emitUserUpdate) emitUserUpdate(user.id, user);
+
+            res.send(user);
+        } catch (error) {
+            res.status(404).send("User not found");
+        }
+    };
+
+    static delete = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id);
+        const userRepository = AppDataSource.getRepository(User);
+        try {
+            let user = await userRepository.findOneOrFail({ where: { id } });
+            await userRepository.remove(user);
+            res.status(204).send();
+        } catch (error) {
+            res.status(404).send("User not found");
+        }
+    };
+
+    static uploadAvatar = async (req: Request, res: Response) => {
+        if (!req.file) {
+            res.status(400).send("No file uploaded");
+            return;
+        }
+        // Normalize path for URL (windows uses backslash, browser needs forward slash)
+        // Public URL: http://localhost:3000/uploads/filename
+        const avatarUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+        res.send({ avatarUrl });
+    };
+
+    static resetPassword = async (req: Request, res: Response) => {
+        const id = parseInt(req.params.id);
+        const userRepository = AppDataSource.getRepository(User);
+        try {
+            let user = await userRepository.findOneOrFail({ where: { id } });
+            user.password = "123"; // Reset to default plain text
+            await userRepository.save(user);
+
+            const { emitForceLogout } = require("../socket");
+            if (emitForceLogout) emitForceLogout(user.id);
+
+            res.send({ message: "Password reset to 123" });
+        } catch (error) {
+            res.status(404).send("User not found");
+        }
+    };
+}
+export default UserController;

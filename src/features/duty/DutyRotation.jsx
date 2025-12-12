@@ -6,15 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Settings, Phone, Check } from "lucide-react";
-import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogTrigger} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DutyConfigDialog } from "./DutyConfigDialog";
 import { DutyRotationSkeleton } from "./DutyRotationSkeleton";
+import { useAuth } from "@/hooks/useAuth";
 export function DutyRotation() {
   const [members, setMembers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [openConfig, setOpenConfig] = useState(false);
+  const { currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
 
   const fetchData = async () => {
     try {
@@ -44,10 +47,23 @@ export function DutyRotation() {
       setIsUpdating(false);
     }
   };
-    const handleConfigSaved = () => {
-        setOpenConfig(false); // Đóng Dialog
-        fetchData(); // Tải lại dữ liệu mới
+  const handleConfigSaved = () => {
+    setOpenConfig(false); // Đóng Dialog
+    fetchData(); // Tải lại dữ liệu mới
+  };
+  // Real-time updates
+  const { socket } = useAuth();
+  useEffect(() => {
+    if (!socket) return;
+    const handleDutyUpdate = () => {
+      fetchData();
     };
+    socket.on("duty:updated", handleDutyUpdate);
+    return () => {
+      socket.off("duty:updated", handleDutyUpdate);
+    };
+  }, [socket]);
+
   if (loading) return <DutyRotationSkeleton />;
 
   return (
@@ -56,23 +72,27 @@ export function DutyRotation() {
         <h1 className="text-3xl font-bold">Xoay tua nhiệm vụ</h1>
         <div className="flex space-x-2 justify-end w-full md:w-auto">
           {/* 4. Nút Cấu hình (mở Dialog) */}
-          <Dialog open={openConfig} onOpenChange={setOpenConfig}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl"> {/* Cho dialog rộng hơn */}
-              <DialogHeader>
-                <DialogTitle>Cấu hình xoay tua</DialogTitle>
-              </DialogHeader>
-              <DutyConfigDialog onSave={handleConfigSaved} />
-            </DialogContent>
-          </Dialog>
+          {isAdmin && (
+            <>
+              <Dialog open={openConfig} onOpenChange={setOpenConfig}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl"> {/* Cho dialog rộng hơn */}
+                  <DialogHeader>
+                    <DialogTitle>Cấu hình xoay tua</DialogTitle>
+                  </DialogHeader>
+                  <DutyConfigDialog onSave={handleConfigSaved} />
+                </DialogContent>
+              </Dialog>
 
-          <Button onClick={handleCompleteTurn} disabled={isUpdating}>
-            {isUpdating ? "Đang chuyển..." : "Hoàn thành & Chuyển lượt"}
-          </Button>
+              <Button onClick={handleCompleteTurn} disabled={isUpdating}>
+                {isUpdating ? "Đang chuyển..." : "Hoàn thành & Chuyển lượt"}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -89,14 +109,12 @@ export function DutyRotation() {
                 >
                   <div className="flex items-center space-x-4">
                     <Avatar>
-                      <AvatarImage src={member.avatar} />
+                      <AvatarImage src={member.avatarUrl} />
                       <AvatarFallback>{member.name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-medium">{member.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {member.phone || 'Chưa có SĐT'}
-                      </p>
+                      {/* Phone removed */}
                     </div>
                   </div>
                   {isCurrentTurn && (

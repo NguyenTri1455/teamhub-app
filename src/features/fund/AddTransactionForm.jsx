@@ -16,7 +16,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils"; // <-- THÊM
 import { format } from "date-fns"; // <-- THÊM
 import { vi } from "date-fns/locale"; // <-- THÊM
-import { Timestamp } from "firebase/firestore"; // <-- THÊM
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // <-- THÊM
 import { Calendar } from "@/components/ui/calendar"; // <-- THÊM
 import { CalendarIcon } from "lucide-react"; // <-- THÊM
@@ -37,8 +36,8 @@ export function AddTransactionForm({ onSubmit, onSuccess }) {
       description: "",
       amount: "0",
       type: "chi",
-      eventDate: new Date(), 
-      eventTime: format(new Date(), "HH:mm"), 
+      eventDate: new Date(),
+      eventTime: format(new Date(), "HH:mm"),
     },
   });
 
@@ -48,7 +47,7 @@ export function AddTransactionForm({ onSubmit, onSuccess }) {
       const [hours, minutes] = values.eventTime.split(':');
       const eventDate = new Date(values.eventDate);
       eventDate.setHours(parseInt(hours), parseInt(minutes));
-      const eventTimestamp = Timestamp.fromDate(eventDate);
+      const eventTimestamp = eventDate;
 
       // Chuẩn bị dữ liệu
       const dataToSubmit = {
@@ -57,10 +56,10 @@ export function AddTransactionForm({ onSubmit, onSuccess }) {
         amount: parseInt(values.amount.replace(/\D/g, ""), 10) || 0,
         timestamp: eventTimestamp, // <-- Sửa
       };
-      
+
       const newTransaction = await onSubmit(dataToSubmit);
       onSuccess(newTransaction);
-      
+
       // Reset form (bao gồm cả ngày giờ về hiện tại)
       form.reset({
         description: "",

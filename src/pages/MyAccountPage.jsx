@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
-import { EditAccountForm } from "@/features/account/EditAccountForm.jsx"; 
+import { EditAccountForm } from "@/features/account/EditAccountForm.jsx";
 import { ChangePasswordDialog } from "@/features/account/ChangePasswordDialog.jsx";
 // Animation
 const pageAnimation = {
@@ -24,14 +24,11 @@ export function MyAccountPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   // "Nghe" (stream) dữ liệu của user này
+  // Sync realtime from Context to local state
   useEffect(() => {
-    if (currentUser?.uid) {
-      setLoading(true);
-      const unsubscribe = streamCurrentUser(currentUser.uid, (data) => {
-        setUserData(data);
-        setLoading(false);
-      });
-      return () => unsubscribe(); // Dọn dẹp
+    if (currentUser) {
+      setUserData(currentUser);
+      setLoading(false);
     }
   }, [currentUser]);
 
@@ -50,16 +47,16 @@ export function MyAccountPage() {
       animate="animate"
       exit="exit"
       transition={{ duration: 0.2 }}
-      className="space-y-6" 
+      className="space-y-6"
     >
       <h1 className="text-3xl font-bold">Tài khoản của tôi</h1>
-      
+
       {/* --- CARD THÔNG TIN CÁ NHÂN --- */}
       <Card className="max-w-2xl">
         <CardHeader className="flex flex-col items-center text-center">
           <Avatar className="w-32 h-32 mb-4">
-            <AvatarImage 
-              src={userData.avatar || `https://i.pravatar.cc/150?u=${userData.id}`} 
+            <AvatarImage
+              src={userData.avatarUrl || `https://i.pravatar.cc/150?u=${userData.id}`}
               alt={userData.name}
             />
             <AvatarFallback className="text-5xl">
@@ -67,13 +64,13 @@ export function MyAccountPage() {
             </AvatarFallback>
           </Avatar>
           <CardTitle className="text-3xl">{userData.name}</CardTitle>
-          <CardDescription>{userData.email}</CardDescription>
+          <CardDescription>@{userData.username}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          
+
           {isEditing ? (
             // --- DẠNG FORM SỬA ---
-            <EditAccountForm 
+            <EditAccountForm
               user={userData}
               onSave={() => setIsEditing(false)}
               onCancel={() => setIsEditing(false)}
@@ -81,10 +78,6 @@ export function MyAccountPage() {
           ) : (
             // --- DẠNG TEXT ĐỌC ---
             <>
-              <div className="space-y-1">
-                <Label>Điện thoại</Label>
-                <p className="font-medium">{userData.phone || "Chưa cập nhật"}</p>
-              </div>
               <div className="space-y-1">
                 <Label>Vai trò (Role)</Label>
                 <p className="font-medium capitalize">{userData.role}</p>
@@ -100,13 +93,13 @@ export function MyAccountPage() {
               </div>
             </>
           )}
-          
+
         </CardContent>
       </Card>
-      
-      <ChangePasswordDialog 
-        open={showPasswordDialog} 
-        onOpenChange={setShowPasswordDialog} 
+
+      <ChangePasswordDialog
+        open={showPasswordDialog}
+        onOpenChange={setShowPasswordDialog}
       />
 
     </motion.div>

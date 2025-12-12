@@ -8,17 +8,36 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Link } from "react-router-dom"; // Dùng để link sang Lịch
 
+import { useAuth } from "@/hooks/useAuth";
+
 export function UpcomingEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { socket } = useAuth();
 
-  useEffect(() => {
-    const unsubscribe = streamEvents((eventsData) => {
-      setEvents(eventsData.slice(0, 3)); // Chỉ lấy 3 sự kiện gần nhất
+  const fetchEvents = () => {
+    // streamEvents service đã được sửa để trả về mảng Event với Date object
+    streamEvents((eventsData) => {
+      setEvents(eventsData.slice(0, 3));
       setLoading(false);
     });
-    return () => unsubscribe();
+  };
+
+  useEffect(() => {
+    fetchEvents();
   }, []);
+
+  // Real-time updates
+  useEffect(() => {
+    if (!socket) return;
+    const handleEventsUpdated = () => {
+      fetchEvents();
+    };
+    socket.on("events:updated", handleEventsUpdated);
+    return () => {
+      socket.off("events:updated", handleEventsUpdated);
+    };
+  }, [socket]);
 
   return (
     <Card>
@@ -49,7 +68,7 @@ export function UpcomingEvents() {
 
 // Component con (để hiển thị gọn gàng)
 function EventItem({ event }) {
-  const eventDate = event.eventTimestamp.toDate();
+  const eventDate = new Date(event.eventTimestamp);
   return (
     <div className="flex items-center gap-4">
       <div className="flex flex-col items-center justify-center p-2 rounded-md bg-muted text-muted-foreground">

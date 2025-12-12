@@ -19,7 +19,6 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale"; // Tiếng Việt
-import { Timestamp } from "firebase/firestore";
 import { useEffect } from "react";
 
 // Định nghĩa schema (cấu trúc) dữ liệu
@@ -37,41 +36,41 @@ export function AddEventForm({ onSubmit, onSuccess, eventToEdit }) {
     // SỬA LẠI defaultValues
     defaultValues: {
       title: eventToEdit?.title || "",
-      eventDate: eventToEdit ? eventToEdit.eventTimestamp.toDate() : undefined,
-      eventTime: eventToEdit ? extractTime(eventToEdit.eventTimestamp.toDate()) : "18:00",
+      eventDate: eventToEdit ? eventToEdit.eventTimestamp : undefined,
+      eventTime: eventToEdit ? extractTime(eventToEdit.eventTimestamp) : "18:00",
       location: eventToEdit?.location || "",
       description: eventToEdit?.description || "",
     },
   });
-    useEffect(() => {
+  useEffect(() => {
     // Reset form khi eventToEdit thay đổi
     if (eventToEdit) {
-        form.reset({
+      form.reset({
         title: eventToEdit.title,
-        eventDate: eventToEdit.eventTimestamp.toDate(),
-        eventTime: extractTime(eventToEdit.eventTimestamp.toDate()),
+        eventDate: eventToEdit.eventTimestamp,
+        eventTime: extractTime(eventToEdit.eventTimestamp),
         location: eventToEdit.location,
         description: eventToEdit.description || "",
-        });
+      });
     } else {
-        // Reset về rỗng khi thêm mới
-        form.reset({
+      // Reset về rỗng khi thêm mới
+      form.reset({
         title: "",
         eventDate: undefined,
         eventTime: "18:00",
         location: "",
         description: "",
-        });
+      });
     }
-    }, [eventToEdit, form.reset]);
+  }, [eventToEdit, form.reset]);
   const handleSubmit = async (values) => {
     try {
       // --- XỬ LÝ KẾT HỢP NGÀY VÀ GIỜ ---
       const [hours, minutes] = values.eventTime.split(':');
       const eventDate = new Date(values.eventDate);
       eventDate.setHours(parseInt(hours), parseInt(minutes));
-      
-      const eventTimestamp = Timestamp.fromDate(eventDate);
+
+      const eventTimestamp = eventDate; //.toISOString(); TypeORM handles Date object fine usually
       // --- Xong xử lý ---
 
       const dataToSubmit = {

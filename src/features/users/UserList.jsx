@@ -4,16 +4,20 @@ import { getUsers } from "@/services/userService.js"; // Sửa
 import { UserCard } from "./UserCard.jsx"; // Sửa
 import { UserListSkeleton } from "./UserListSkeleton";
 import { useAuth } from "@/hooks/useAuth.js";
+import { AddUserDialog } from "./AddUserDialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export function UserList() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { userDocument, currentUser } = useAuth();
-  const isAdmin = userDocument?.role === 'admin';
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const { currentUser, socket } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
   useEffect(() => {
     // Chỉ fetch data NẾU user đã đăng nhập
-    if (currentUser) { 
+    if (currentUser) {
       const fetchUsers = async () => {
         try {
           setLoading(true);
@@ -33,6 +37,18 @@ export function UserList() {
       setLoading(false);
     }
   }, [currentUser]);
+
+  // Realtime updates
+  useEffect(() => {
+    if (!socket) return;
+    const handleUserUpdated = (updatedUser) => {
+      setUsers(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u));
+    };
+    socket.on("user:updated", handleUserUpdated);
+    return () => {
+      socket.off("user:updated", handleUserUpdated);
+    };
+  }, [socket]);
 
   const handleUserDeleted = (deletedUserId) => {
     setUsers((prevUsers) =>
@@ -57,9 +73,19 @@ export function UserList() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Danh sách Người dùng</h1>
-        {/* Nút Thêm Mới đã bị xóa */}
+        {isAdmin && (
+          <Button onClick={() => setOpenAddDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Thêm người dùng
+          </Button>
+        )}
       </div>
-      
+
+      <AddUserDialog
+        open={openAddDialog}
+        onOpenChange={setOpenAddDialog}
+        onUserCreated={() => window.location.reload()} // Simple reload to refresh or refetch
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {users.map((user) => (
           <UserCard
@@ -68,7 +94,7 @@ export function UserList() {
             onUserDeleted={handleUserDeleted}
             onUserUpdated={handleUserUpdated}
             isAdmin={isAdmin}
-            currentUserId={currentUser.uid}
+            currentUserId={currentUser.id}
           />
         ))}
       </div>
