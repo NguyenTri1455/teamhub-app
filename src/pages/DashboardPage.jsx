@@ -1,4 +1,5 @@
 // src/pages/DashboardPage.jsx
+// force update
 import { useState, useEffect } from "react"; // <-- THÊM
 import { motion } from "framer-motion";
 import { UpcomingEvents } from "@/features/dashboard/UpcomingEvents";
@@ -31,18 +32,18 @@ export function DashboardPage() {
           getFundSummary(),
           getRotationData()
         ]);
-        
+
         // 1. Set số dư
         setFundSummary(summaryData);
-        
+
         // 2. Set người làm nhiệm vụ
         if (dutyData.members && dutyData.members.length > 0) {
           const { members, currentIndex } = dutyData;
-          
+
           // Tính toán index của người TIẾP THEO
           const nextIndex = (currentIndex + 1) % members.length;
           const nextPerson = members[nextIndex];
-          
+
           setNextOnDuty(nextPerson);
         }
 
@@ -63,14 +64,16 @@ export function DashboardPage() {
       exit="exit"
       transition={{ duration: 0.2 }}
     >
-      <h1 className="text-3xl font-bold">Chào mừng đến với TeamHub</h1>
+      <h1 className="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+        Chào mừng đến với TeamHub
+      </h1>
       <p className="mt-2 text-muted-foreground mb-6">
         Tổng quan các hoạt động của team.
       </p>
 
       {/* --- SỬA LẠI GRID --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {/* Cột 1: Thống kê (mới) */}
         <div className="lg:col-span-1 flex flex-col gap-6">
           {/* Card Số Dư Quỹ */}
@@ -112,7 +115,7 @@ export function DashboardPage() {
         <div className="lg:col-span-2">
           <UpcomingEvents />
         </div>
-        
+
       </div>
     </motion.div>
   );

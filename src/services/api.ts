@@ -34,4 +34,15 @@ api.interceptors.response.use(
     }
 );
 
+// Theme Events
+export const getGlobalTheme = async () => {
+    const response = await api.get('/settings/theme');
+    return response.data;
+};
+
+export const updateGlobalTheme = async (themeId: string) => {
+    const response = await api.post('/settings/theme', { themeId });
+    return response.data;
+};
+
 export default api;

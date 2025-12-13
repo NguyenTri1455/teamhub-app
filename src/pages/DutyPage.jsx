@@ -1,7 +1,7 @@
 import { DutyRotation } from "@/features/duty/DutyRotation";
-import { Link } from "react-router-dom"; 
-import { Button } from "@/components/ui/button"; 
-import { ChevronLeft } from "lucide-react"; 
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 import { motion } from "framer-motion";
 const pageAnimation = {
   initial: { opacity: 0, y: 10 },
@@ -20,7 +20,7 @@ export function DutyPage() {
       <Button asChild variant="outline" className="mb-4">
         <Link to="/utilities">
           <ChevronLeft className="h-4 w-4 mr-2" />
-          Quay lại danh sách
+          Quay lại
         </Link>
       </Button>
       <DutyRotation />

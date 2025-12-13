@@ -45,6 +45,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FundTransactionCard } from "./FundTransactionCard";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth.js";
+import { ScrollHideFab } from "@/components/common/ScrollHideFab";
 
 // Hàm helper định dạng tiền tệ
 const formatCurrency = (number) => {
@@ -154,7 +155,7 @@ export function FundLedger() {
         {/* 1. Hiển thị số dư */}
         <div className="mb-6">
           <h2 className="text-lg text-muted-foreground">Số dư hiện tại</h2>
-          <p className="text-4xl font-bold text-blue-600">
+          <p className="text-3xl md:text-4xl font-bold text-blue-600">
             {formatCurrency(summary.currentBalance)}
           </p>
         </div>
@@ -169,17 +170,12 @@ export function FundLedger() {
         {/* 3. Nút FAB cho MOBILE */}
         {canManageFund && (
           <DialogTrigger asChild>
-            <Button
-              className="md:hidden fixed bottom-24 right-4 h-14 w-14 rounded-full shadow-lg z-10"
-              size="icon"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
+            <ScrollHideFab icon={Plus} className="md:hidden" />
           </DialogTrigger>
         )}
 
         {/* 3. Bảng lịch sử giao dịch */}
-        <h3 className="text-2xl font-bold mt-8 mb-4">Lịch sử giao dịch</h3>
+        <h3 className="text-xl md:text-2xl font-bold mt-8 mb-4">Lịch sử giao dịch</h3>
         <Table className="hidden md:table">
           <TableHeader>
             <TableRow>

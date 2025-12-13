@@ -6,7 +6,10 @@
     "scripts": {
         "start": "ts-node src/index.ts",
         "dev": "nodemon src/index.ts",
-        "build": "tsc"
+        "build": "tsc",
+        "typeorm": "typeorm-ts-node-commonjs",
+        "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
+        "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
     },
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",

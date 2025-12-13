@@ -19,7 +19,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"; // Import Dropdown
+
 import { PageTransition } from "@/components/common/PageTransition"; // Import PageTransition
+import { LiquidNavBar } from "@/components/liquid/LiquidNavBar";
+import { LiquidSideBar } from "@/components/liquid/LiquidSideBar";
 
 // Danh sách các link nav (đã xóa Xoay tua)
 const navItems = [
@@ -51,34 +54,28 @@ export function MainLayout() {
     <TooltipProvider delayDuration={0}>
       <div className="flex min-h-screen bg-transparent">
 
-        {/* --- SIDEBAR (Desktop) - GLASS --- */}
-        <aside className="hidden md:flex flex-col w-64 glass border-r-0 z-20">
-          <div className="h-16 flex items-center justify-center border-b">
-            <h1 className="text-2xl font-bold text-blue-600">TeamHub</h1>
-          </div>
-
-          {/* Sửa lại cấu trúc để đẩy nút Logout xuống dưới */}
-          <div className="flex-1 flex flex-col justify-between p-4">
-            <nav className="space-y-2">
-              {navItems.map((item) => (
-                <DesktopNavLink key={item.to} to={item.to} label={item.label} icon={item.icon} />
-              ))}
-            </nav>
-            <div>
+        {/* --- SIDEBAR (Desktop) - REPLACED WITH LIQUID SIDEBAR --- */}
+        <LiquidSideBar
+          items={navItems}
+          header={
+            <div className="flex items-center justify-center">
+              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">TeamHub</h1>
+            </div>
+          }
+          footer={
+            <div className="space-y-4">
               <DesktopNavLink
                 to="/account"
                 label="Tài khoản của tôi"
                 icon={UserCircle}
               />
-              {/* NÚT ĐĂNG XUẤT (DESKTOP) */}
-              <Button variant="ghost" onClick={handleLogout} className="justify-start text-muted-foreground hover:text-red-500">
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-muted-foreground hover:text-red-500 hover:bg-red-500/10 hover:shadow-none border-0">
                 <LogOut className="h-5 w-5 mr-3" />
                 <span>Đăng xuất</span>
               </Button>
-
             </div>
-          </div>
-        </aside>
+          }
+        />
 
         <div className="flex-1 flex flex-col overflow-hidden">
 
@@ -112,14 +109,10 @@ export function MainLayout() {
             <Outlet />
           </main>
 
-          {/* --- BOTTOM NAV (Mobile) - GLASS --- */}
-          <footer className="fixed bottom-0 left-0 right-0 md:hidden glass border-t-0 z-20">
-            <nav className="flex justify-around items-center h-16 w-full">
-              {navItems.map((item) => (
-                <MobileNavLink key={item.to} to={item.to} label={item.label} icon={item.icon} />
-              ))}
-            </nav>
-          </footer>
+          {/* --- BOTTOM NAV (Mobile) - LIQUID DOCK --- */}
+          <div className="md:hidden">
+            <LiquidNavBar items={navItems} />
+          </div>
         </div>
 
       </div>

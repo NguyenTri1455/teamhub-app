@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChevronRight, ClipboardList, CalendarDays, Loader2 } from "lucide-react";
+import { ChevronRight, ClipboardList, CalendarDays, Loader2, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth.js";
 
 // Animation
@@ -26,6 +26,13 @@ export function UtilitiesPage() {
       icon: ClipboardList,
     },
     {
+      id: "theme-event",
+      to: "/utilities/theme-event",
+      title: "Giao diện Sự kiện",
+      description: "Trang trí ứng dụng theo các ngày lễ.",
+      icon: Sparkles,
+    },
+    {
       id: "calendar", // Thêm ID
       to: "/utilities/team-calendar",
       title: "Lịch Sự kiện Team",
@@ -42,7 +49,7 @@ export function UtilitiesPage() {
       exit="exit"
       transition={{ duration: 0.2 }}
     >
-      <h1 className="text-3xl font-bold mb-6">Tiện ích</h1>
+      <h1 className="text-xl md:text-3xl font-bold mb-6">Tiện ích</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Sửa lại key={util.id} */}

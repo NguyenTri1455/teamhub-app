@@ -17,35 +17,46 @@ import { UtilitiesPage } from "@/pages/UtilitiesPage";
 import { DutyPage } from "@/pages/DutyPage";
 import { TeamCalendarPage } from "@/pages/TeamCalendarPage";
 import { MyAccountPage } from "@/pages/MyAccountPage";
+import { ThemeEventProvider } from "@/context/ThemeEventContext";
+import { ThemeEffectsContainer } from "@/components/theme/ThemeEffectsContainer";
+import { ThemeEventPage } from "@/pages/ThemeEventPage";
+
 function App() {
   return (
-    <BrowserRouter>
-      {/* Background toàn bộ ứng dụng */}
-      <LiquidBackground />
+    <ThemeEventProvider>
+      <BrowserRouter>
+        {/* Background toàn bộ ứng dụng */}
+        <LiquidBackground />
 
-      <Routes>
-        {/* Route Public */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        {/* Theme Effects Overlay */}
+        <ThemeEffectsContainer />
 
-        {/* Route Private */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="members" element={<UsersPage />} /> {/* Đổi trang, giữ path cũ cho dễ */}
-            <Route path="fund" element={<FundPage />} />
+        <Routes>
+          {/* Route Public */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
 
-            <Route path="utilities" element={<UtilitiesPage />} />
-            <Route path="utilities/duty" element={<DutyPage />} />
-            <Route path="utilities/team-calendar" element={<TeamCalendarPage />} />
-            <Route path="account" element={<MyAccountPage />} />
+          {/* Route Private */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="members" element={<UsersPage />} />
+              <Route path="fund" element={<FundPage />} />
+
+              <Route path="utilities" element={<UtilitiesPage />} />
+              <Route path="utilities/duty" element={<DutyPage />} />
+              <Route path="utilities/team-calendar" element={<TeamCalendarPage />} />
+              <Route path="utilities/theme-event" element={<ThemeEventPage />} />
+
+              <Route path="account" element={<MyAccountPage />} />
+            </Route>
           </Route>
-        </Route>
 
-      </Routes>
+        </Routes>
 
-      <Toaster position="top-center" richColors />
-    </BrowserRouter >
+        <Toaster position="top-center" richColors />
+      </BrowserRouter >
+    </ThemeEventProvider>
   );
 }
 

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth.js";
 import { AddUserDialog } from "./AddUserDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { ScrollHideFab } from "@/components/common/ScrollHideFab";
 
 export function UserList() {
   const [users, setUsers] = useState([]);
@@ -72,13 +73,23 @@ export function UserList() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Danh sách Người dùng</h1>
+        <h1 className="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+          Danh sách Người dùng
+        </h1>
         {isAdmin && (
-          <Button onClick={() => setOpenAddDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Thêm người dùng
-          </Button>
+          <div className="hidden md:block">
+            <Button onClick={() => setOpenAddDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Thêm người dùng
+            </Button>
+          </div>
         )}
       </div>
+
+      {isAdmin && (
+        <div className="md:hidden">
+          <ScrollHideFab icon={Plus} onClick={() => setOpenAddDialog(true)} className="bottom-24" />
+        </div>
+      )}
 
       <AddUserDialog
         open={openAddDialog}

@@ -16,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar"; // Lịch lớn để hiể
 import { format, isSameDay } from "date-fns";
 import { vi } from "date-fns/locale";
 import { useAuth } from "@/hooks/useAuth";
+import { ScrollHideFab } from "@/components/common/ScrollHideFab";
 
 // Animation
 const pageAnimation = {
@@ -140,12 +141,19 @@ export function TeamCalendarPage() {
         </Button>
         {isAdmin && (
           <Dialog open={openAddDialog || !!eventToEdit} onOpenChange={handleOpenStateChange}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setOpenAddDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm sự kiện
-              </Button>
-            </DialogTrigger>
+            <div className="hidden md:block">
+              <DialogTrigger asChild>
+                <Button onClick={() => setOpenAddDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm sự kiện
+                </Button>
+              </DialogTrigger>
+            </div>
+            <div className="md:hidden">
+              <DialogTrigger asChild>
+                <ScrollHideFab icon={Plus} onClick={() => setOpenAddDialog(true)} />
+              </DialogTrigger>
+            </div>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>

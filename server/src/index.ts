@@ -9,6 +9,7 @@ import fundRoutes from "./routes/funds";
 import dutyRoutes from "./routes/duty";
 // Beer routes removed
 import userRoutes from "./routes/users";
+import settingsRoutes from "./routes/settings";
 import { User } from "./entities/User";
 import { initSocket } from "./socket";
 import { createServer } from "http";
@@ -33,11 +34,14 @@ app.use("/invitations", invitationRoutes);
 app.use("/funds", fundRoutes);
 app.use("/duty", dutyRoutes);
 app.use("/users", userRoutes);
+app.use("/settings", settingsRoutes);
 
 const httpServer = createServer(app);
 
 AppDataSource.initialize().then(async () => {
     console.log("Data Source has been initialized!")
+    await AppDataSource.runMigrations();
+
 
     // Seed Admin User
     const userRepo = AppDataSource.getRepository(User);

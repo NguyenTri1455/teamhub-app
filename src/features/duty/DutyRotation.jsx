@@ -72,7 +72,9 @@ export function DutyRotation() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold">Xoay tua nhiệm vụ</h1>
+        <h1 className="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+          Xoay tua nhiệm vụ
+        </h1>
         <div className="flex space-x-2 justify-end w-full md:w-auto">
           {/* 4. Nút Cấu hình (mở Dialog) */}
           {isAdmin && (
@@ -92,7 +94,12 @@ export function DutyRotation() {
               </Dialog>
 
               <Button onClick={handleCompleteTurn} disabled={isUpdating}>
-                {isUpdating ? "Đang chuyển..." : "Hoàn thành & Chuyển lượt"}
+                {isUpdating ? "Đang chuyển..." : (
+                  <>
+                    <span className="hidden md:inline">Hoàn thành & Chuyển lượt</span>
+                    <span className="md:hidden">Chuyển lượt</span>
+                  </>
+                )}
               </Button>
             </>
           )}
