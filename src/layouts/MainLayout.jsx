@@ -1,10 +1,10 @@
 // src/layouts/MainLayout.jsx
-import { Outlet, NavLink, useNavigate, Link } from "react-router-dom"; // Thêm useNavigate
-import { 
-  Users, 
-  DollarSign, 
-  LayoutDashboard, 
-  AppWindow, 
+import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom"; // Thêm useLocation
+import {
+  Users,
+  DollarSign,
+  LayoutDashboard,
+  AppWindow,
   LogOut, // Thêm icon Đăng xuất
   User,    // Thêm icon User (cho mobile)
   UserCircle
@@ -13,12 +13,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth.js"; // Import hook Auth
 import { Button } from "@/components/ui/button"; // Import Button
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"; // Import Dropdown
+import { PageTransition } from "@/components/common/PageTransition"; // Import PageTransition
 
 // Danh sách các link nav (đã xóa Xoay tua)
 const navItems = [
@@ -37,19 +38,21 @@ export function MainLayout() {
     try {
       await logout();
       // Chuyển về trang login sau khi đăng xuất
-      navigate('/login'); 
+      navigate('/login');
     } catch (error) {
       console.error("Lỗi khi đăng xuất:", error);
     }
   };
   // --- HẾT LOGIC ĐĂNG XUẤT ---
 
+  const location = useLocation(); // Lấy vị trí hiện tại cho animation key
+
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex min-h-screen bg-background">
-        
-        {/* --- SIDEBAR (Desktop) - ĐÃ SỬA --- */}
-        <aside className="hidden md:flex flex-col w-64 border-r">
+      <div className="flex min-h-screen bg-transparent">
+
+        {/* --- SIDEBAR (Desktop) - GLASS --- */}
+        <aside className="hidden md:flex flex-col w-64 glass border-r-0 z-20">
           <div className="h-16 flex items-center justify-center border-b">
             <h1 className="text-2xl font-bold text-blue-600">TeamHub</h1>
           </div>
@@ -62,57 +65,55 @@ export function MainLayout() {
               ))}
             </nav>
             <div>
-              <DesktopNavLink 
-                  to="/account" 
-                  label="Tài khoản của tôi" 
-                  icon={UserCircle} 
-                  />
+              <DesktopNavLink
+                to="/account"
+                label="Tài khoản của tôi"
+                icon={UserCircle}
+              />
               {/* NÚT ĐĂNG XUẤT (DESKTOP) */}
               <Button variant="ghost" onClick={handleLogout} className="justify-start text-muted-foreground hover:text-red-500">
                 <LogOut className="h-5 w-5 mr-3" />
                 <span>Đăng xuất</span>
               </Button>
 
-              </div>
+            </div>
           </div>
         </aside>
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          
-          {/* --- HEADER (Mobile) - ĐÃ SỬA --- */}
-          <header className="h-16 flex md:hidden items-center justify-between p-4 border-b">
-             <h1 className="text-2xl font-bold text-blue-600">TeamHub</h1>
-             
-             {/* NÚT ĐĂNG XUẤT (MOBILE) */}
-             <DropdownMenu>
-               <DropdownMenuTrigger asChild>
-                 <Button variant="ghost" size="icon">
-                   <User className="h-5 w-5" />
-                 </Button>
-               </DropdownMenuTrigger>
-               <DropdownMenuContent align="end">
+
+          {/* --- HEADER (Mobile) - GLASS --- */}
+          <header className="h-16 flex md:hidden items-center justify-between p-4 glass border-b-0 sticky top-0 z-10">
+            <h1 className="text-2xl font-bold text-blue-600">TeamHub</h1>
+
+            {/* NÚT ĐĂNG XUẤT (MOBILE) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                   <Link to="/account">
-                     <UserCircle className="h-4 w-4 mr-2" />
-                     Tài khoản của tôi
-                   </Link>
-                 </DropdownMenuItem>
-                 <DropdownMenuItem onClick={handleLogout} className="text-red-500">
-                   <LogOut className="h-4 w-4 mr-2" />
-                   Đăng xuất
-                 </DropdownMenuItem>
-               </DropdownMenuContent>
-             </DropdownMenu>
+                  <Link to="/account">
+                    <UserCircle className="h-4 w-4 mr-2" />
+                    Tài khoản của tôi
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Đăng xuất
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </header>
 
           <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
-            <AnimatePresence mode="wait">
-              <Outlet />
-            </AnimatePresence>
+            <Outlet />
           </main>
 
-          {/* --- BOTTOM NAV (Mobile) --- */}
-          <footer className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t">
+          {/* --- BOTTOM NAV (Mobile) - GLASS --- */}
+          <footer className="fixed bottom-0 left-0 right-0 md:hidden glass border-t-0 z-20">
             <nav className="flex justify-around items-center h-16 w-full">
               {navItems.map((item) => (
                 <MobileNavLink key={item.to} to={item.to} label={item.label} icon={item.icon} />
@@ -133,16 +134,24 @@ export function MainLayout() {
 const DesktopNavLink = ({ to, label, icon: Icon }) => (
   <NavLink
     to={to}
-    className={({ isActive }) =>
-      `flex items-center space-x-3 px-4 py-2 rounded-md transition-colors
-       ${isActive
-        ? "bg-primary text-primary-foreground"
-        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-      }`
-    }
+    className="relative flex items-center space-x-3 px-4 py-2 rounded-md transition-all group"
   >
-    <Icon className="h-5 w-5" />
-    <span>{label}</span>
+    {({ isActive }) => (
+      <>
+        {isActive && (
+          <motion.div
+            layoutId="active-nav-desktop"
+            className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-500 rounded-md shadow-lg shadow-blue-500/30"
+            initial={false}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          />
+        )}
+        <div className={`relative z-10 flex items-center space-x-3 ${isActive ? "text-white" : "text-muted-foreground group-hover:text-blue-600"}`}>
+          <Icon className="h-5 w-5" />
+          <span>{label}</span>
+        </div>
+      </>
+    )}
   </NavLink>
 );
 
@@ -161,7 +170,7 @@ const MobileNavLink = ({ to, label, icon: Icon }) => (
       <>
         <Icon className="h-6 w-6" />
         <span className="text-xs mt-1">{label}</span>
-        
+
         {isActive && (
           <motion.div
             layoutId="active-nav-indicator"

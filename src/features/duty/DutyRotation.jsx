@@ -1,5 +1,6 @@
 // src/features/duty/DutyRotation.jsx
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { getRotationData, completeDutyTurn } from "@/services/dutyService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -41,8 +42,10 @@ export function DutyRotation() {
     try {
       const newIndex = await completeDutyTurn();
       setCurrentIndex(newIndex);
+      toast.success("Đã hoàn thành và chuyển lượt!");
     } catch (error) {
       console.error(error);
+      toast.error("Lỗi khi chuyển lượt. Thử lại sau!");
     } finally {
       setIsUpdating(false);
     }

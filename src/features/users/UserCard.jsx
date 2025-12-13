@@ -1,5 +1,6 @@
 // src/features/members/UserCard.jsx
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -37,8 +38,10 @@ export function UserCard({ user, onUserDeleted, onUserUpdated, isAdmin, currentU
       if (onUserDeleted) {
         onUserDeleted(user.id); // Gọi callback báo cho cha
       }
+      toast.success("Xóa thành viên thành công!");
     } catch (error) {
       console.error("Failed to delete user:", error);
+      toast.error("Xóa thất bại!");
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -63,10 +66,11 @@ export function UserCard({ user, onUserDeleted, onUserUpdated, isAdmin, currentU
                   if (window.confirm(`Reset password của ${user.name} về "123"?`)) {
                     try {
                       await import("@/services/userService").then(m => m.resetPassword(user.id));
-                      alert("Password đã được reset về 123");
+                      await import("@/services/userService").then(m => m.resetPassword(user.id));
+                      toast.success(`Password của ${user.name} đã được reset về 123`);
                     } catch (e) {
                       console.error(e);
-                      alert("Lỗi khi reset password");
+                      toast.error("Lỗi khi reset password");
                     }
                   }
                 }}>

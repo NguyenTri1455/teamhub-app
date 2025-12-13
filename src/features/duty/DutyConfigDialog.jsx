@@ -1,5 +1,6 @@
 // src/features/duty/DutyConfigDialog.jsx
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   DndContext,
   closestCenter,
@@ -114,9 +115,11 @@ export function DutyConfigDialog({ onSave }) {
     try {
       const idArray = rotationList.map(member => member.id);
       await updateRotationConfig(idArray);
+      toast.success("Đã lưu cấu hình xoay tua!");
       onSave(); // Gọi callback báo cho Cha
     } catch (error) {
       console.error(error);
+      toast.error("Lỗi khi lưu cấu hình.");
     } finally {
       setIsSaving(false);
     }

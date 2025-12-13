@@ -1,5 +1,6 @@
 // src/features/fund/FundLedger.jsx
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   getFundSummary,
   getTransactions,
@@ -120,9 +121,11 @@ export function FundLedger() {
       setTxToDelete(null);
       // Fetch lại dữ liệu sau khi xóa và tính toán lại
       fetchData();
+      toast.success("Xóa giao dịch thành công!");
     } catch (error) {
       console.error("Lỗi khi xóa:", error);
       setTxToDelete(null);
+      toast.error("Xóa giao dịch thất bại.");
     }
   };
 

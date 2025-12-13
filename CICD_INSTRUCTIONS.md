@@ -1,88 +1,55 @@
 
-# CI/CD Setup Guide (GitHub Actions)
+# CI/CD Setup Guide (Self-Hosted Runner)
 
-This guide helps you set up automatic deployment using a dedicated user on your Ubuntu server.
+**Reason for Change:**
+The error `dial tcp ... i/o timeout` means GitHub cannot connect to your server. This is expected if your server is "local" or behind a VPN.
+To fix this, we will use a **Self-Hosted Runner**. This allows your server to "pull" jobs from GitHub, so no incoming connection (SS) is needed.
 
-## 1. Create a Dedicated User (On Server)
-It is best practice to use a separate user for deployment (e.g., `github-deploy`) instead of your personal account.
+## 1. Add Runner to GitHub
+1.  Go to your GitHub Repository.
+2.  Settings -> **Actions** -> **Runners**.
+3.  Click **New self-hosted runner**.
+4.  Select **Linux**.
+5.  Run the commands shown by GitHub on your **Ubuntu Server**.
 
-Log into your server and run:
-
-```bash
-# 1. Create new user 'github-deploy'
-sudo adduser github-deploy
-
-# 2. Add user to 'docker' group (to run docker without sudo)
-sudo usermod -aG docker github-deploy
-
-# 3. Switch to the new user
-su - github-deploy
-```
-
-## 2. Generate SSH Keys
-You need an SSH key pair. The **Private Key** goes to GitHub, and the **Public Key** stays on the server.
-
-```bash
-# Generate key pair (Press Enter for all prompts, NO PASSWORD)
-ssh-keygen -t ed25519 -C "github-actions"
-
-# Add public key to authorized_keys
-mkdir -p ~/.ssh
-cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/authorized_keys
-
-# Display the PRIVATE key (You will copy this to GitHub)
-cat ~/.ssh/id_ed25519
-```
-**COPY** the entire content of the private key (starting with `-----BEGIN OPENSSH PRIVATE KEY-----` to `-----END...`).
-
-## 3. Configure GitHub Secrets
-Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**.
-
-Add the following secrets:
-
-| Name | Value |
-|------|-------|
-| `SERVER_HOST` | Your server IP address (e.g., `123.45.67.89`) |
-| `SERVER_USER` | `github-deploy` |
-| `SSH_PRIVATE_KEY` | Paste the Private Key you copied in Step 2 |
-
-## 4. Initial Setup for the Deploy User
-The deploy user needs the repository cloned first.
-
-On your server (still as `github-deploy` user):
-```bash
-# Go to home directory
-cd ~
-
-# Clone the repo (Use HTTPS if you don't want to setup Git keys, or setup deploy keys)
-# For public repo:
-git clone https://github.com/hungcao291099/teamhub-app.git teamhub-app
-
-# For private repo, the easiest way for CI/CD is using Personal Access Token (PAT)
-# git clone https://<YOUR_PAT>@github.com/hungcao291099/teamhub-app.git teamhub-app
-
-# Enter the directory
-cd teamhub-app
-
-# CREATE the database file (Critical step!)
-# Since this is a new user, create the file again or copy from old location.
-# Creating new empty:
-touch server/database.sqlite
-```
-
-## 5. Test
-Push a commit to the `main` branch on GitHub.
-- Go to the **Actions** tab in your repo.
-- You should see "Deploy to Production" running.
-- If successful, your server is updated!
-
-## Troubleshooting `Permission denied`
-If the workflow fails with permission errors, ensure:
-1. `github-deploy` is in the docker group: `groups github-deploy` should show `docker`.
-2. `server/database.sqlite` and `server/public/uploads` are writable by `github-deploy`.
+   *Example commands (Do not copy, use the specific token from GitHub):*
    ```bash
-   # Fix permissions
-   sudo chown -R github-deploy:github-deploy ~/teamhub-app
+   # Create a folder
+   mkdir actions-runner && cd actions-runner
+   
+   # Download (GitHub will give you the exact curl link)
+   curl -O -L https://github.com/actions/runner/releases/download/v2.x.x/actions-runner-linux-x64-v2.x.x.tar.gz
+   
+   # Extract
+   tar xzf ./actions-runner-linux-x64-*.tar.gz
+   
+   # Configure (Use url and token from GitHub page)
+   ./config.sh --url https://github.com/YOUR_USER/YOUR_REPO --token YOUR_TOKEN
+   # Accept defaults (press Enter)
    ```
+
+## 2. Install as Service (Run in Background)
+After configuring, run these commands to ensure it runs automatically:
+```bash
+# Install service
+sudo ./svc.sh install
+
+# Start service
+sudo ./svc.sh start
+```
+
+## 3. Verify
+- Go to Settings -> Actions -> Runners. You should see your runner is "Idle" (Green).
+
+## 4. Permissions
+The runner runs as the user you installed it with (e.g., `ubuntu` or `github-deploy`).
+Ensure this user has Docker permissions:
+```bash
+sudo usermod -aG docker $USER
+# You might need to restart the runner service if permission denied occurs
+sudo ./svc.sh stop
+sudo ./svc.sh start
+```
+
+## 5. Deploy
+Push a change to `main`. The workflow will now be picked up by your local server and deployed instantly!

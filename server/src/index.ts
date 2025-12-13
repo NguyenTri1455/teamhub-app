@@ -43,23 +43,23 @@ AppDataSource.initialize().then(async () => {
     const userRepo = AppDataSource.getRepository(User);
     const adminExists = await userRepo.findOne({ where: { role: "admin" } });
 
-    // if (!adminExists) {
-    //     console.log("Seeding Admin User...");
-    //     const admin = new User();
-    //     admin.username = "admin";
-    //     admin.password = "123456"; // Plain text as requested
-    //     admin.role = "admin";
-    //     admin.name = "System Admin";
-    //     await userRepo.save(admin);
-    //     console.log("Admin User Created: admin / 123456");
-    // } else {
-    //     // Ensure role is admin
-    //     if (adminExists.role !== "admin") {
-    //         adminExists.role = "admin";
-    //         await userRepo.save(adminExists);
-    //         console.log("Updated Admin User role to 'admin'");
-    //     }
-    // }
+    if (!adminExists) {
+        console.log("Seeding Admin User...");
+        const admin = new User();
+        admin.username = "admin";
+        admin.password = "123456"; // Plain text as requested
+        admin.role = "admin";
+        admin.name = "System Admin";
+        await userRepo.save(admin);
+        console.log("Admin User Created: admin / 123456");
+    } else {
+        // Ensure role is admin
+        if (adminExists.role !== "admin") {
+            adminExists.role = "admin";
+            await userRepo.save(adminExists);
+            console.log("Updated Admin User role to 'admin'");
+        }
+    }
 
     app.get("/", (req, res) => {
         res.send("TeamHub API is running!")

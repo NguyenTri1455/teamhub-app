@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { createUser } from "@/services/userService";
 import {
     Dialog,
@@ -34,6 +35,7 @@ export function AddUserDialog({ open, onOpenChange, onUserCreated }) {
         setError(null);
         try {
             await createUser(data);
+            toast.success("Thêm thành viên thành công!");
             reset();
             onOpenChange(false);
             if (onUserCreated) {
@@ -41,6 +43,7 @@ export function AddUserDialog({ open, onOpenChange, onUserCreated }) {
             }
         } catch (err) {
             console.error(err);
+            toast.error("Không thể tạo người dùng. Email/Username có thể đã tồn tại.");
             setError("Không thể tạo người dùng. Email hoặc username có thể đã tồn tại.");
         } finally {
             setLoading(false);

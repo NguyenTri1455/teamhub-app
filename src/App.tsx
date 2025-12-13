@@ -2,6 +2,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "@/layouts/MainLayout";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { Toaster } from "sonner"; // Import Toaster
+import { LiquidBackground } from "@/components/common/LiquidBackground"; // Import Background
 
 // Trang Public
 import { LoginPage } from "@/pages/LoginPage";
@@ -18,6 +20,9 @@ import { MyAccountPage } from "@/pages/MyAccountPage";
 function App() {
   return (
     <BrowserRouter>
+      {/* Background toàn bộ ứng dụng */}
+      <LiquidBackground />
+
       <Routes>
         {/* Route Public */}
         <Route path="/login" element={<LoginPage />} />
@@ -38,7 +43,9 @@ function App() {
         </Route>
 
       </Routes>
-    </BrowserRouter>
+
+      <Toaster position="top-center" richColors />
+    </BrowserRouter >
   );
 }
 

@@ -1,5 +1,6 @@
 // src/features/account/ChangePasswordDialog.jsx
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -37,7 +38,7 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { reauthenticateAndChangePassword } = useAuth();
-  
+
   const form = useForm({
     resolver: zodResolver(passwordSchema),
     defaultValues: { password: "", newPassword: "", confirmPassword: "" },
@@ -49,7 +50,8 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     try {
       await reauthenticateAndChangePassword(data.password, data.newPassword);
       setSuccess("Đổi mật khẩu thành công! Tự động đóng sau 2s.");
-      
+      toast.success("Đổi mật khẩu thành công!");
+
       // Tự động đóng dialog sau 2 giây
       setTimeout(() => {
         onOpenChange(false);
@@ -58,8 +60,10 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     } catch (err) {
       if (err.code === 'auth/wrong-password') {
         setError("Mật khẩu cũ không chính xác.");
+        toast.error("Mật khẩu cũ không chính xác.");
       } else {
         setError("Đã xảy ra lỗi. Vui lòng thử lại.");
+        toast.error("Đổi mật khẩu thất bại.");
       }
       console.error(err);
     }
@@ -128,7 +132,7 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {success && <p className="text-green-500 text-sm">{success}</p>}
-            
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>

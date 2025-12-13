@@ -1,8 +1,10 @@
 // src/features/fund/AddTransactionForm.jsx
 import { useForm } from "react-hook-form";
+import { toast } from "sonner"; // Correct import
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+
 import {
   Form,
   FormControl,
@@ -59,6 +61,7 @@ export function AddTransactionForm({ onSubmit, onSuccess }) {
 
       const newTransaction = await onSubmit(dataToSubmit);
       onSuccess(newTransaction);
+      toast.success("Thêm giao dịch thành công!");
 
       // Reset form (bao gồm cả ngày giờ về hiện tại)
       form.reset({
@@ -71,6 +74,7 @@ export function AddTransactionForm({ onSubmit, onSuccess }) {
 
     } catch (error) {
       console.error("Lỗi khi thêm giao dịch:", error);
+      toast.error("Lỗi khi thêm giao dịch. Vui lòng thử lại.");
     }
   };
 

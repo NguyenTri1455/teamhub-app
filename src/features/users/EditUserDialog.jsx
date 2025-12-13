@@ -1,5 +1,6 @@
 // src/features/members/EditUserDialog.jsx
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -59,17 +60,20 @@ export function EditUserDialog({ user, onUserUpdated, open, onOpenChange, isAdmi
         ...data,
         avatar: data.avatar || `https://i.pravatar.cc/150?u=${data.name}`,
       };
-      
+
       await updateUser(user.id, userData);
-      
+
       // Gọi hàm callback từ cha để cập nhật UI
       if (onUserUpdated) {
         onUserUpdated(user.id, userData); // Gửi ID và data mới
       }
-      
+
+
+      toast.success("Cập nhật thông tin thành công!");
       onOpenChange(false); // Đóng dialog
     } catch (error) {
       console.error("Failed to update user:", error);
+      toast.error("Cập nhật thất bại. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -85,10 +89,10 @@ export function EditUserDialog({ user, onUserUpdated, open, onOpenChange, isAdmi
             Cập nhật thông tin cho thành viên này.
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            
+
             {/* 🚀 SỬA 3: Refactor "Tên" dùng FormField */}
             <FormField
               control={form.control}
@@ -134,7 +138,7 @@ export function EditUserDialog({ user, onUserUpdated, open, onOpenChange, isAdmi
                 </FormItem>
               )}
             />
-            
+
             {/* Khối "Role" (Đã đúng) */}
             {isAdmin && (
               <FormField
@@ -160,7 +164,7 @@ export function EditUserDialog({ user, onUserUpdated, open, onOpenChange, isAdmi
                 )}
               />
             )}
-            
+
             <DialogFooter className="mt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Hủy

@@ -1,7 +1,8 @@
 // src/pages/TeamCalendarPage.jsx
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, MoreHorizontal } from "lucide-react";
 import { streamEvents, addEvent, updateEvent, deleteEvent } from "@/services/eventService";
@@ -80,13 +81,16 @@ export function TeamCalendarPage() {
 
       if (eventToEdit) {
         await updateEvent(eventToEdit.id, dataToSubmit);
+        toast.success("Sửa sự kiện thành công!");
       } else {
         await addEvent(dataToSubmit);
+        toast.success("Thêm sự kiện thành công!");
       }
 
       handleDialogClose(); // Đóng dialog
     } catch (error) {
       console.error("Lỗi khi submit:", error);
+      toast.error("Có lỗi xảy ra. Hãy thử lại!");
     }
   };
 
@@ -112,10 +116,12 @@ export function TeamCalendarPage() {
     if (!eventToDelete) return;
     try {
       await deleteEvent(eventToDelete.id);
+      toast.success("Xóa sự kiện thành công!");
       setShowDeleteDialog(false);
       setEventToDelete(null);
     } catch (error) {
       console.error("Lỗi khi xóa:", error);
+      toast.error("Có lỗi xảy ra khi xóa.");
     }
   };
   const handleOpenStateChange = (isOpen) => {
@@ -178,18 +184,31 @@ export function TeamCalendarPage() {
             Sự kiện ngày {selectedDate ? format(selectedDate, "dd/MM", { locale: vi }) : "..."}
           </h2>
           <div className="space-y-4">
-            {filteredEvents.length === 0 && (
-              <p className="text-muted-foreground">Không có sự kiện nào cho ngày này.</p>
+            {loading ? (
+              <EventListSkeleton />
+            ) : (
+              <AnimatePresence mode="popLayout">
+                {filteredEvents.length === 0 && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-muted-foreground"
+                  >
+                    Không có sự kiện nào cho ngày này.
+                  </motion.p>
+                )}
+                {filteredEvents.map((event) => (
+                  <EventItem
+                    key={event.id}
+                    event={event}
+                    onEdit={() => handleEdit(event)}
+                    onDelete={() => handleDelete(event)}
+                    isAdmin={isAdmin}
+                  />
+                ))}
+              </AnimatePresence>
             )}
-            {filteredEvents.map((event) => (
-              <EventItem
-                key={event.id}
-                event={event}
-                onEdit={() => handleEdit(event)}
-                onDelete={() => handleDelete(event)}
-                isAdmin={isAdmin}
-              />
-            ))}
           </div>
         </div>
       </div>
@@ -218,35 +237,43 @@ export function TeamCalendarPage() {
 function EventItem({ event, onEdit, onDelete, isAdmin }) {
   const eventDate = new Date(event.eventTimestamp);
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>{event.title}</CardTitle>
-          <CardDescription>
-            {format(eventDate, "eeee, dd/MM/yyyy 'lúc' HH:mm", { locale: vi })}
-          </CardDescription>
-        </div>
-        {isAdmin && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={onEdit}>Sửa</DropdownMenuItem>
-              <DropdownMenuItem onClick={onDelete} className="text-red-500">
-                Xóa
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </CardHeader>
-      <CardContent>
-        <p><strong>Địa điểm:</strong> {event.location}</p>
-        {event.description && <p className="mt-2 text-muted-foreground">{event.description}</p>}
-      </CardContent>
-    </Card>
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>{event.title}</CardTitle>
+            <CardDescription>
+              {format(eventDate, "eeee, dd/MM/yyyy 'lúc' HH:mm", { locale: vi })}
+            </CardDescription>
+          </div>
+          {isAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={onEdit}>Sửa</DropdownMenuItem>
+                <DropdownMenuItem onClick={onDelete} className="text-red-500">
+                  Xóa
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </CardHeader>
+        <CardContent>
+          <p><strong>Địa điểm:</strong> {event.location}</p>
+          {event.description && <p className="mt-2 text-muted-foreground">{event.description}</p>}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 

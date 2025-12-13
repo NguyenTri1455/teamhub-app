@@ -1,5 +1,6 @@
 // src/features/account/EditAccountForm.jsx
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +38,7 @@ export function EditAccountForm({ user, onSave, onCancel }) {
       setValue("avatar", res.avatarUrl); // Update hidden field or state
     } catch (error) {
       console.error("Upload failed", error);
-      alert("Upload ảnh thất bại");
+      toast.error("Upload ảnh thất bại");
     } finally {
       setUploading(false);
     }
@@ -54,9 +55,11 @@ export function EditAccountForm({ user, onSave, onCancel }) {
 
       await updateUser(user.id, userData);
 
+      toast.success("Cập nhật hồ sơ thành công!");
       onSave(); // Gọi callback báo cha đã lưu (để tắt chế độ edit)
     } catch (error) {
       console.error("Failed to update user:", error);
+      toast.error("Cập nhật hồ sơ thất bại.");
     } finally {
       setIsSubmitting(false);
     }
