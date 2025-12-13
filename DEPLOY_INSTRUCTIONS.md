@@ -46,6 +46,27 @@ Follow these steps to deploy the TeamHub application on a fresh Ubuntu server.
     -   View logs: `docker-compose logs -f`
     -   Access the app: Open your browser and go to `http://<your-server-ip>`.
 
+## Applying Updates (Important!)
+When you pull new code, especially after the **Database Persistence Update**:
+
+1.  **Pull latest code**:
+    ```bash
+    git pull
+    ```
+
+2.  **Rebuild and Restart**:
+    Since we changed `Dockerfile`, `.dockerignore`, and volume configurations, you **MUST** rebuild:
+    ```bash
+    docker-compose down
+    docker-compose up -d --build
+    ```
+
+3.  **Verify Data Persistence**:
+    - The `server/database.sqlite` file is now untracked by git and mounted as a volume.
+    - It will **NOT** be overwritten by future `git pull` commands.
+    - If this is a fresh update, existing data in the container *might* be lost if it wasn't mounted before. If you are starting fresh, the system will automatically create the database and run migrations.
+
+
 ## Troubleshooting
 
 -   **Database Error**: If you see "EISDIR: illegal operation on a directory, open '.../database.sqlite'", it means Docker created a directory instead of a file.
