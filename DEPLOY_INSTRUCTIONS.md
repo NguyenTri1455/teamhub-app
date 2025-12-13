@@ -56,16 +56,44 @@ Follow these steps to deploy the TeamHub application on a fresh Ubuntu server.
         touch server/database.sqlite
         docker-compose up -d
         ```
--   **Permission Issues**: Ensure the user running docker has permissions to write to `server/public/uploads` and `server/database.sqlite`.
+-   **Permission Issues (Docker)**: If you see `Permission denied` when running `docker-compose`.
+    -   **Fix 1 (Recommended)**: Run `newgrp docker` to refresh group membership, then try again.
+    -   **Fix 2 (Temporary)**: Run with sudo: `sudo docker-compose up -d --build`.
+    
+-   **Permission Issues (Files)**: Ensure the user running docker has permissions to write to `server/public/uploads` and `server/database.sqlite`.
 -   **DNS/Network Issues**: If you see `Temporary failure resolving 'archive.ubuntu.com'`, your server cannot resolve domain names.
-    -   **Quick Fix**:
+    -   **Quick Fix (Temporary)**:
         ```bash
-        # Add Google DNS temporarily
-        echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+        # Force overwrite resolv.conf
+        sudo rm /etc/resolv.conf
+        echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
         
         # Now try updating again
         sudo apt update
         ```
+    -   **Robust Fix (Netplan)**:
+        If the above doesn't work, configure Netplan.
+        1.  Check your interface name: `ip a` (e.g., `eth0` or `ens3`).
+        2.  Edit netplan config (file name varies):
+            ```bash
+            sudo nano /etc/netplan/00-installer-config.yaml
+            # OR
+            sudo nano /etc/netplan/50-cloud-init.yaml
+            ```
+        3.  Add `nameservers` under your interface:
+            ```yaml
+            network:
+              ethernets:
+                eth0: # Replace with your interface name
+                  nameservers:
+                    addresses: [8.8.8.8, 8.8.4.4]
+              version: 2
+            ```
+        4.  Apply changes:
+            ```bash
+            sudo netplan apply
+            ```
+
 
 
 ## Directory Structure on Server
