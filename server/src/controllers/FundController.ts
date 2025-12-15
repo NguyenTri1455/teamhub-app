@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { FundTransaction } from "../entities/FundTransaction";
+import { getIO } from "../socket";
 
 class FundController {
     static list = async (req: Request, res: Response) => {
@@ -55,7 +56,7 @@ class FundController {
             await transactionalEntityManager.save(tx);
 
             // Emit socket event
-            const { getIO } = require("../socket");
+            // Emit socket event
             try {
                 const io = getIO();
                 io.emit("fund:updated"); // Refresh list
@@ -90,7 +91,7 @@ class FundController {
             await manager.remove(txToDelete);
 
             // Emit socket event
-            const { getIO } = require("../socket");
+            // Emit socket event
             try {
                 const io = getIO();
                 io.emit("fund:updated");

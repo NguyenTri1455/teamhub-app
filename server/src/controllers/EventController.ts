@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Event } from "../entities/Event";
+import { getIO } from "../socket";
 
 class EventController {
     static list = async (req: Request, res: Response) => {
@@ -38,7 +39,6 @@ class EventController {
         try {
             await eventRepository.save(event);
 
-            const { getIO } = require("../socket");
             try { getIO().emit("events:updated"); } catch (e) { }
 
             res.status(201).send("Event created");
@@ -68,7 +68,6 @@ class EventController {
         try {
             await eventRepository.save(event);
 
-            const { getIO } = require("../socket");
             try { getIO().emit("events:updated"); } catch (e) { }
 
             res.status(204).send();
@@ -83,7 +82,6 @@ class EventController {
         try {
             await eventRepository.delete(id);
 
-            const { getIO } = require("../socket");
             try { getIO().emit("events:updated"); } catch (e) { }
 
             res.status(204).send();

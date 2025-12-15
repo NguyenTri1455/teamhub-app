@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { User } from "../entities/User";
+import { emitUserUpdate, emitForceLogout } from "../socket";
 
 class UserController {
     static list = async (req: Request, res: Response) => {
@@ -41,7 +42,6 @@ class UserController {
             await userRepository.save(user);
 
             // Real-time update
-            const { emitUserUpdate } = require("../socket");
             if (emitUserUpdate) emitUserUpdate(user.id, user);
 
             res.send(user);
@@ -84,7 +84,6 @@ class UserController {
             user.password = "123"; // Reset to default plain text
             await userRepository.save(user);
 
-            const { emitForceLogout } = require("../socket");
             if (emitForceLogout) emitForceLogout(user.id);
 
             res.send({ message: "Password reset to 123" });

@@ -3,6 +3,7 @@ import { AppDataSource } from "../data-source";
 import { DutyRotation } from "../entities/DutyRotation";
 import { User } from "../entities/User";
 import { In } from "typeorm";
+import { getIO } from "../socket";
 
 class DutyRotationController {
     static get = async (req: Request, res: Response) => {
@@ -51,7 +52,6 @@ class DutyRotationController {
         try {
             await repo.save(rotation);
 
-            const { getIO } = require("../socket");
             try { getIO().emit("duty:updated"); } catch (e) { }
 
             res.send(rotation);
@@ -74,7 +74,6 @@ class DutyRotationController {
         try {
             await repo.save(rotation);
 
-            const { getIO } = require("../socket");
             try { getIO().emit("duty:updated"); } catch (e) { }
 
             res.send({ currentIndex: rotation.currentIndex });

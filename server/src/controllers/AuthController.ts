@@ -4,6 +4,7 @@ import { User } from "../entities/User";
 import * as jwt from "jsonwebtoken";
 import * as crypto from "crypto";
 import config from "../config";
+import { emitForceLogout } from "../socket";
 
 // Helper for SHA256
 const hashPassword = (password: string) => {
@@ -44,7 +45,6 @@ class AuthController {
 
         // Single Session Enforcement (Force Logout others of SAME clientType)
         try {
-            const { emitForceLogout } = require("../socket");
             if (emitForceLogout) emitForceLogout(user.id, clientType);
         } catch (e) { console.log("Socket not ready"); }
 
