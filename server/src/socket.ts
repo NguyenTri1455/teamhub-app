@@ -21,6 +21,10 @@ export const initSocket = (httpServer: HttpServer) => {
         try {
             const payload = jwt.verify(token, config.jwtSecret);
             (socket as any).userId = (payload as any).userId;
+            // Get client type from query or auth, default to 'web'
+            const clientType = socket.handshake.query.clientType || socket.handshake.auth.clientType || 'web';
+            (socket as any).clientType = clientType;
+
             next();
         } catch (err) {
             next(new Error("Authentication error"));
@@ -29,13 +33,16 @@ export const initSocket = (httpServer: HttpServer) => {
 
     io.on("connection", (socket: Socket) => {
         const userId = (socket as any).userId;
-        console.log(`User connected: ${userId}, Socket: ${socket.id}`);
+        const clientType = (socket as any).clientType;
+
+        console.log(`User connected: ${userId} [${clientType}], Socket: ${socket.id}`);
 
         // Join user to their own room for targeted events (e.g. force logout, direct updates)
-        socket.join(`user_${userId}`);
+        // Differentiate by clientType to allow 1 Web + 1 App
+        socket.join(`user_${userId}_${clientType}`);
 
         socket.on("disconnect", () => {
-            console.log(`User disconnected: ${userId}`);
+            console.log(`User disconnected: ${userId} [${clientType}]`);
         });
     });
 
@@ -60,8 +67,8 @@ export const emitUserUpdate = (userId: number, data: any) => {
     io.emit("user:updated", { userId, ...data });
 };
 
-export const emitForceLogout = (userId: number) => {
+export const emitForceLogout = (userId: number, clientType: string = 'web') => {
     if (!io) return;
-    // Emit to the user's personal room
-    io.to(`user_${userId}`).emit("auth:force_logout", { reason: "Password reset or Session revoked" });
+    // Emit to the user's personal room for the specific client type
+    io.to(`user_${userId}_${clientType}`).emit("auth:force_logout", { reason: "Password reset or Session revoked" });
 };

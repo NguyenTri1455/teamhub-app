@@ -10,6 +10,7 @@ import dutyRoutes from "./routes/duty";
 // Beer routes removed
 import userRoutes from "./routes/users";
 import settingsRoutes from "./routes/settings";
+import appRoutes from "./routes/app";
 import { User } from "./entities/User";
 import { initSocket } from "./socket";
 import { createServer } from "http";
@@ -35,6 +36,7 @@ app.use("/funds", fundRoutes);
 app.use("/duty", dutyRoutes);
 app.use("/users", userRoutes);
 app.use("/settings", settingsRoutes);
+app.use("/app", appRoutes);
 
 const httpServer = createServer(app);
 

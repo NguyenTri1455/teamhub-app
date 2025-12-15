@@ -13,10 +13,15 @@ const hashPassword = (password: string) => {
 class AuthController {
     static login = async (req: Request, res: Response) => {
         // Check if username and password are set
-        let { username, password } = req.body;
+        let { username, password, clientType } = req.body;
         if (!(username && password)) {
             res.status(400).send("Username and password are required");
             return;
+        }
+
+        // Default clientType to 'web' if not provided
+        if (!clientType) {
+            clientType = 'web';
         }
 
         // Get user from database
@@ -37,10 +42,10 @@ class AuthController {
             return;
         }
 
-        // Single Session Enforcement (Force Logout others)
+        // Single Session Enforcement (Force Logout others of SAME clientType)
         try {
             const { emitForceLogout } = require("../socket");
-            if (emitForceLogout) emitForceLogout(user.id);
+            if (emitForceLogout) emitForceLogout(user.id, clientType);
         } catch (e) { console.log("Socket not ready"); }
 
         // Sing JWT, valid for 1 hour
