@@ -17,18 +17,14 @@ jobs:
 
       - name: Deploy with Docker Compose
         run: |
-          # The repo is already checked out to the runner's work directory
+           # The repo is already checked out to the runner's work directory
           
           # Create .env from secrets (Optional, if you use secrets for env vars)
           # echo "${{ secrets.ENV_FILE }}" > .env
           
           # Build and Run
           # Since we are ON the server, we just run docker compose
-          # Build first (keep output for logs)
-          docker compose build
-          
-          # Run in background and silence output to prevent hanging
-          docker compose up -d > /dev/null 2>&1
+          docker compose up -d --build
           
           # Cleanup
           docker image prune -f
