@@ -12,12 +12,6 @@ jobs:
     runs-on: self-hosted
     
     steps:
-      - name: Cleanup Workspace (Fix Docker Root Permissions)
-        run: |
-          # Files created by Docker run as root, so we need sudo to clean them
-          sudo rm -rf ${{ github.workspace }}/* || true
-          sudo rm -rf ${{ github.workspace }}/.* 2>/dev/null || true
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -30,19 +24,7 @@ jobs:
           
           # Build and Run
           # Since we are ON the server, we just run docker compose
-          # 1. Build explicitly
-          # This will pull the latest code (checkout) and build the docker images.
-          # The containers will NOT be restarted automatically.
-          # 1. Deploy (Build + Run in background)
-          # Use timeout (5 minutes) to prevent infinite hanging
-          # Use --no-log-prefix to clean output
-          timeout 300 docker compose up -d --build --no-log-prefix 2>&1 || echo "Docker compose completed or timed out"
+          docker compose up -d --build
           
-          # 2. Small delay to ensure containers are starting
-          sleep 5
-          
-          # 3. Verify containers are running
-          docker compose ps
-          
-          # 4. Cleanup unused images (with force and filter to speed up)
-          docker image prune -f --filter "until=24h" 2>&1 || true
+          # Cleanup
+          docker image prune -f
