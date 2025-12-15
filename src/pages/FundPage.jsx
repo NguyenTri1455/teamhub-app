@@ -1,5 +1,4 @@
 import { FundLedger } from "@/features/fund/FundLedger";
-import { DonateOverlay } from "@/features/fund/DonateOverlay";
 import { motion } from "framer-motion";
 const pageAnimation = {
   initial: { opacity: 0, y: 10 },
@@ -17,7 +16,6 @@ export function FundPage() {
       transition={{ duration: 0.2 }}
     >
       <FundLedger />
-      <DonateOverlay />
     </motion.div>
   )
 }

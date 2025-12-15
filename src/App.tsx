@@ -20,6 +20,7 @@ import { MyAccountPage } from "@/pages/MyAccountPage";
 import { ThemeEventProvider } from "@/context/ThemeEventContext";
 import { ThemeEffectsContainer } from "@/components/theme/ThemeEffectsContainer";
 import { ThemeEventPage } from "@/pages/ThemeEventPage";
+import { DonateOverlay } from "@/features/fund/DonateOverlay";
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
 
         {/* Theme Effects Overlay */}
         <ThemeEffectsContainer />
+
+        {/* Donate Overlay - hiển thị ở tất cả các route */}
+        <DonateOverlay />
 
         <Routes>
           {/* Route Public */}

@@ -19,7 +19,7 @@ export function DonateOverlay() {
                 // Trigger Fireworks
                 const duration = 5 * 1000;
                 const animationEnd = Date.now() + duration;
-                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 60 };
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
                 const randomInRange = (min, max) => Math.random() * (max - min) + min;
 
@@ -57,7 +57,7 @@ export function DonateOverlay() {
                     initial={{ opacity: 0, scale: 0.5, y: -100 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.5, y: -100 }}
-                    className="fixed top-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+                    className="fixed top-24 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
                     style={{ translateX: "-50%" }} // Reinforce centering
                 >
                     <div className="flex flex-col items-center gap-4 text-center max-w-[90vw]">
