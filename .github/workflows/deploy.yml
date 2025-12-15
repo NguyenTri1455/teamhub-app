@@ -12,6 +12,12 @@ jobs:
     runs-on: self-hosted
     
     steps:
+      - name: Cleanup Workspace (Fix Docker Root Permissions)
+        run: |
+          # Files created by Docker run as root, so we need sudo to clean them
+          sudo rm -rf ${{ github.workspace }}/* || true
+          sudo rm -rf ${{ github.workspace }}/.* 2>/dev/null || true
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
